@@ -1,6 +1,6 @@
 #!/bin/bash
-curl -XDELETE localhost:9200/tesla -H'Content-Type: application/json'
-curl -XPUT localhost:9200/tesla -H'Content-Type: application/json' -d '{
+curl -XDELETE elasticsearch:9200/tesla -H'Content-Type: application/json'
+curl -XPUT elasticsearch:9200/tesla -H'Content-Type: application/json' -d '{
   "mappings" : {
     "tesla" :{
       "properties" :{

@@ -1,4 +1,4 @@
-from tesla_api import TeslaApiClient
+import teslapy
 import requests
 import time
 import json
@@ -6,18 +6,25 @@ import json
 previouslyActive = True
 while True:
         try:
-                client = TeslaApiClient('user@email.com', 'yourteslapassword')
-                vehicles = client.list_vehicles()
+#            def solve_captcha(svg):
+#                with open('captcha.svg', 'wb') as f:
+#                    f.write(svg)
+#                return input('Captcha: ')
+            with teslapy.Tesla('yourname@email.com', 'supersecretpassword', None, None, None, None, None, 0, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36") as tesla:
+#                tesla.captcha_solver = solve_captcha
+                tesla.fetch_token()
+                vehicles = tesla.vehicle_list()
                 v = vehicles[0]
-                state = v.state
+                vehicle_data = v.get_vehicle_data()
+                state = vehicle_data['state']
                 if (state == 'asleep'):
                         print("Asleep. Waiting for 5 minutes...")
                         previouslyActive = False
                         time.sleep(5*60)
                 else:
                         print("getting data...")
-                        drive_state = v.get_drive_state()
-                        charge = v.charge.get_state()
+                        drive_state = vehicle_data['drive_state']
+                        charge = vehicle_data['charge_state']['battery_level']
                         #print(charge)
                         print(drive_state)
                         speed = drive_state['speed']
@@ -37,7 +44,7 @@ while True:
                         print(json.dumps(payload))
                         #v.controls.flash_lights()
                         headers = {"Content-Type" : "application/json"}
-                        r = requests.post("http://127.0.0.1:9200/tesla/tesla", headers = headers, data = json.dumps(payload))
+                        r = requests.post("http://elasticsearch:9200/tesla/tesla", headers = headers, data = json.dumps(payload))
                         #print(r.content)
                         if (shift_state == None and previouslyActive == True):
                                 print("Shift state switched to none, sleeping for 21 minutes...")
@@ -46,6 +53,6 @@ while True:
                                 previouslyActive = True;
                                 print("Driving, sleeping for 30 seconds...")
                                 time.sleep(30)
-        except:
-                print("An exception occured!")
+        except Exception as e:
+                print(e)
                 time.sleep(120);
